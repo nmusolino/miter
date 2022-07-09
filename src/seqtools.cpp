@@ -67,16 +67,6 @@ IndexesRange indexes(py::sequence seq, py::object value,
 } // namespace miter
 
 PYBIND11_MODULE(_seqtools, m) {
-  m.doc() = R"pbdoc(
-      Miter seqtools module
-      -----------------------
-      .. currentmodule:: miter.seqtools
-      .. autosummary::
-         :toctree: _generate
-         add
-         subtract
-  )pbdoc";
-
   using namespace pybind11::literals;
 
   py::class_<miter::IndexesRange>(m, "_IndexesRange")
@@ -85,5 +75,10 @@ PYBIND11_MODULE(_seqtools, m) {
 
   m.def("indexes", &miter::indexes, "sequence"_a, "value"_a,
         "start"_a = std::nullopt, "end"_a = std::nullopt,
-        R"pbdoc(Return all indexes of `value` in `sequence`.)pbdoc");
+        R"pbdoc(
+Return an iterator over the indexes of all elements equal to ``value`` in ``sequence``.
+
+If provided, the ``start`` and ``end`` parameters are interpreted as in slice notation
+and are used to limit the search to a particular subsequence, as in the builtin
+``list.index()`` method.)pbdoc");
 }
