@@ -21,6 +21,11 @@ ext_modules = [
         ["src/main.cpp"],
         cxx_std=11,
     ),
+    Pybind11Extension(
+        "miter._seqtools",
+        ["src/seqtools.cpp"],
+        cxx_std=11,
+    ),
 ]
 
 
