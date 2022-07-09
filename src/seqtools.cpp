@@ -1,8 +1,10 @@
 #include <cstddef>
-#include <algorithm>  // std::min, std::max
-#include <sstream>
+
+#include <algorithm> // std::min, std::max
+#include <optional>
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h> // for std::optional
 
 namespace py = pybind11;
 
@@ -34,29 +36,31 @@ private:
 
 public:
   IndexesRange(py::sequence seq, py::object value, size_t start, size_t end)
-      : seq_{seq}, value_{value}, start_{start}, end_{seq.size()} {}
+      : seq_{seq}, value_{value}, start_{start}, end_{end} {}
 
   IndexesRange(py::sequence seq, py::object value)
       : IndexesRange{seq, value, /*start*/ 0, /*end*/ seq.size()} {}
 
   IndexesRange iter() { return *this; }
   size_t next() {
-    while (start_ != end_) {
+    while (start_ < end_) {
       const auto idx = start_++;
+      assert(0 <= idx && idx < seq_.size());
       const py::object &elem = seq_[idx];
       if (elem.equal(value_)) {
         return idx;
       }
     }
-    assert(start_ == end_);
+    assert(start_ <= end_);
     throw py::stop_iteration{};
   }
 };
 
-IndexesRange indexes(py::sequence seq, py::object value, ssize_t start,
-                     ssize_t end) {
-  return IndexesRange{seq, value, normalize_index(seq, start),
-                      normalize_index(seq, end)};
+IndexesRange indexes(py::sequence seq, py::object value,
+                     std::optional<ssize_t> start, std::optional<ssize_t> end) {
+  const auto start_index = normalize_index(seq, start.value_or(0));
+  const auto end_index = normalize_index(seq, end.value_or(seq.size()));
+  return IndexesRange{seq, value, start_index, end_index};
 }
 
 } // namespace miter
@@ -79,6 +83,6 @@ PYBIND11_MODULE(_seqtools, m) {
       .def("__next__", &miter::IndexesRange::next);
 
   m.def("indexes", &miter::indexes, "sequence"_a, "value"_a,
-        "start"_a = ssize_t{0}, "end"_a = ssize_t{0},
+        "start"_a = std::nullopt, "end"_a = std::nullopt,
         R"pbdoc(Return all indexes of `value` in `sequence`.)pbdoc");
 }
