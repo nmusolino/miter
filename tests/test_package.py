@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import miter as m
+import miter
 
 
 def test_version():
-    assert m.__version__
+    assert miter.__version__
