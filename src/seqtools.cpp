@@ -1,10 +1,26 @@
-#include <pybind11/pybind11.h>
+#include <cstddef>
+#include <algorithm>  // std::min, std::max
+#include <sstream>
 
-#include <iostream>
+#include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 
 namespace miter {
+
+// Normalize or fix-up the index of `seq` so that it is a valid index.
+//
+// The list.index() method does not raise when the user-supplied values of
+// `start` or `end` are incorrect, but instead tries to do what the user means.
+// This function does the same sort of thing.
+size_t normalize_index(const py::sequence &seq, ssize_t index) {
+  const auto seq_len = static_cast<ssize_t>(seq.size());
+  if (index >= 0) {
+    return std::min(index, seq_len);
+  } else {
+    return std::max(ssize_t{0}, seq_len + index);
+  }
+}
 
 // TODO(nmusolino): add alternative using fast iterator in pybind11
 class IndexesRange {
@@ -39,9 +55,8 @@ public:
 
 IndexesRange indexes(py::sequence seq, py::object value, ssize_t start,
                      ssize_t end) {
-  // TODO(nmusolino): convert potentially negative index to positive index.
-  return IndexesRange{seq, value, static_cast<size_t>(start),
-                      static_cast<size_t>(end)};
+  return IndexesRange{seq, value, normalize_index(seq, start),
+                      normalize_index(seq, end)};
 }
 
 } // namespace miter
