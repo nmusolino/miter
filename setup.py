@@ -17,11 +17,6 @@ from pybind11.setup_helpers import Pybind11Extension  # isort:skip
 
 ext_modules = [
     Pybind11Extension(
-        "miter._core",
-        ["src/main.cpp"],
-        cxx_std=17,
-    ),
-    Pybind11Extension(
         "miter._seqtools",
         ["src/seqtools.cpp"],
         cxx_std=17,
