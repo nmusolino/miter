@@ -15,12 +15,12 @@ namespace miter {
 // The list.index() method does not raise when the user-supplied values of
 // `start` or `end` are incorrect, but instead tries to do what the user means.
 // This function does the same sort of thing.
-size_t normalize_index(const py::sequence &seq, ssize_t index) {
-  const auto seq_len = static_cast<ssize_t>(seq.size());
+size_t normalize_index(const py::sequence &seq, py::ssize_t index) {
+  const auto seq_len = static_cast<py::ssize_t>(seq.size());
   if (index >= 0) {
     return std::min(index, seq_len);
   } else {
-    return std::max(ssize_t{0}, seq_len + index);
+    return std::max(py::ssize_t{0}, seq_len + index);
   }
 }
 
@@ -57,7 +57,8 @@ public:
 };
 
 IndexesRange indexes(py::sequence seq, py::object value,
-                     std::optional<ssize_t> start, std::optional<ssize_t> end) {
+                     std::optional<py::ssize_t> start,
+                     std::optional<py::ssize_t> end) {
   const auto start_index = normalize_index(seq, start.value_or(0));
   const auto end_index = normalize_index(seq, end.value_or(seq.size()));
   return IndexesRange{seq, value, start_index, end_index};
