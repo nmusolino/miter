@@ -19,12 +19,12 @@ ext_modules = [
     Pybind11Extension(
         "miter._core",
         ["src/main.cpp"],
-        cxx_std=11,
+        cxx_std=17,
     ),
     Pybind11Extension(
         "miter._seqtools",
         ["src/seqtools.cpp"],
-        cxx_std=11,
+        cxx_std=17,
     ),
 ]
 
