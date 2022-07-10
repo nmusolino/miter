@@ -44,7 +44,7 @@ def indexes_repeated_index(seq, value):
 )
 @pytest.mark.parametrize("seq_type", [list, tuple, str, bytes])
 def test_indexes(benchmark, seq_type, indexes_impl):
-    n = 16 * 1024
+    n = 32 * 1024
     seq = sample_sequence(seq_type, n)
     assert isinstance(seq, seq_type)
 

@@ -56,6 +56,45 @@ public:
   }
 };
 
+// Iterator over indexes for a "fast" sequence, i.e. that
+//
+class ListTupleIndexesIterator {
+  using sequence_iterator = py::detail::list_iterator; // Also works for tuple
+private:
+  const py::sequence seq_;
+  const py::object value_;
+  const sequence_iterator begin_;
+  sequence_iterator it_;
+  const sequence_iterator end_;
+
+public:
+  ListTupleIndexesIterator(py::list seq, py::object value, size_t start_index,
+                           size_t end_index)
+      : seq_{seq}, value_{value}, begin_{seq.begin()},
+        it_{begin_ + start_index}, end_{begin_ + end_index} {}
+
+  ListTupleIndexesIterator(py::tuple seq, py::object value, size_t start_index,
+                           size_t end_index)
+      : seq_{seq}, value_{value}, begin_{seq.begin()},
+        it_{begin_ + start_index}, end_{begin_ + end_index} {}
+
+  ListTupleIndexesIterator iter() { return *this; }
+
+  size_t next() {
+    while (it_ < end_) {
+      const auto result = it_ = std::find_if(
+          it_, end_, [this](const py::handle &h) { return h.equal(value_); });
+      if (it_ == end_) {
+        break;
+      }
+      it_++;
+      assert((*result).equal(value_));
+      return result - begin_;
+    }
+    throw py::stop_iteration{};
+  }
+};
+
 IndexesIterator indexes(py::sequence seq, py::object value,
                         std::optional<py::ssize_t> start,
                         std::optional<py::ssize_t> end) {
@@ -64,21 +103,46 @@ IndexesIterator indexes(py::sequence seq, py::object value,
   return IndexesIterator{seq, value, start_index, end_index};
 }
 
+ListTupleIndexesIterator list_indexes(py::list seq, py::object value,
+                                      std::optional<py::ssize_t> start,
+                                      std::optional<py::ssize_t> end) {
+  const size_t start_index = normalize_index(seq, start.value_or(0));
+  const size_t end_index = normalize_index(seq, end.value_or(seq.size()));
+  return ListTupleIndexesIterator{seq, value, start_index, end_index};
+}
+
+ListTupleIndexesIterator tuple_indexes(py::tuple seq, py::object value,
+                                       std::optional<py::ssize_t> start,
+                                       std::optional<py::ssize_t> end) {
+  const size_t start_index = normalize_index(seq, start.value_or(0));
+  const size_t end_index = normalize_index(seq, end.value_or(seq.size()));
+  return ListTupleIndexesIterator{seq, value, start_index, end_index};
+}
+
 } // namespace miter
 
 PYBIND11_MODULE(_seqtools, m) {
   using namespace pybind11::literals;
 
-  py::class_<miter::IndexesIterator>(m, "_IndexesIterator")
-      .def("__iter__", &miter::IndexesIterator::iter)
-      .def("__next__", &miter::IndexesIterator::next);
-
-  m.def("indexes", &miter::indexes, "sequence"_a, "value"_a,
-        "start"_a = std::nullopt, "end"_a = std::nullopt,
-        R"pbdoc(
+  constexpr auto indexes_doc = R"pbdoc(
 Return an iterator over the indexes of all elements equal to ``value`` in ``sequence``.
 
 If provided, the ``start`` and ``end`` parameters are interpreted as in slice notation
 and are used to limit the search to a particular subsequence, as in the builtin
-``list.index()`` method.)pbdoc");
+``list.index()`` method.)pbdoc";
+
+  py::class_<miter::IndexesIterator>(m, "_IndexesIterator")
+      .def("__iter__", &miter::IndexesIterator::iter)
+      .def("__next__", &miter::IndexesIterator::next);
+
+  py::class_<miter::ListTupleIndexesIterator>(m, "_ListTupleIndexesIterator")
+      .def("__iter__", &miter::ListTupleIndexesIterator::iter)
+      .def("__next__", &miter::ListTupleIndexesIterator::next);
+
+  m.def("indexes", &miter::list_indexes, "sequence"_a, "value"_a,
+        "start"_a = std::nullopt, "end"_a = std::nullopt, indexes_doc);
+  m.def("indexes", &miter::tuple_indexes, "sequence"_a, "value"_a,
+        "start"_a = std::nullopt, "end"_a = std::nullopt, indexes_doc);
+  m.def("indexes", &miter::indexes, "sequence"_a, "value"_a,
+        "start"_a = std::nullopt, "end"_a = std::nullopt, indexes_doc);
 }
