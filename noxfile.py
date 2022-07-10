@@ -35,6 +35,20 @@ def tests(session: nox.Session) -> None:
 
 
 @nox.session
+def benchmarks(session: nox.Session) -> None:
+    """
+    Run the unit and regular tests.
+    """
+    session.install(".", ".[test]")
+    session.run(
+        "pytest",
+        "--benchmark-group-by=param:seq_type",
+        "benchmarks/test_seqtools_indexes.py",
+        *session.posargs,
+    )
+
+
+@nox.session
 def docs(session: nox.Session) -> None:
     """
     Build the docs. Pass "serve" to serve.
