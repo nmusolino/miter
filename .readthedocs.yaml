@@ -10,7 +10,9 @@ sphinx:
   configuration: docs/conf.py
 
 # Include PDF and ePub
-formats: all
+formats:
+  - htmlzip
+  - pdf
 
 python:
   version: "3.8"
