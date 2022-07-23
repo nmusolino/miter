@@ -27,7 +27,7 @@ testpaths = [
 
 [tool.mypy]
 files = "src"
-python_version = "3.7"
+python_version = "3.8"
 warn_unused_configs = true
 strict = true
 show_error_codes = true
@@ -50,7 +50,7 @@ profile = "black"
 
 
 [tool.pylint]
-master.py-version = "3.7"
+master.py-version = "3.8"
 master.ignore-paths= ["src/miter/_version.py"]
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
