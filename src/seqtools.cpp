@@ -24,44 +24,63 @@ size_t normalize_index(const py::sequence &seq, py::ssize_t index) {
   }
 }
 
-class IndexesIterator {
-private:
-  // TODO(nmusolino): add alternative using fast iterator in pybind11
-  // TODO(nmusolino): can we cache end_ index, or could sequence change during
-  // iteration?
-  py::sequence seq_;
-  py::object value_;
-  size_t start_ = {};
-  size_t end_ = {};
+template <typename SequenceType>
+using SequenceIterator = decltype(std::declval<SequenceType>().begin());
+
+template <typename SequenceType> class IndexesIterator {
+  using Iterator = SequenceIterator<SequenceType>;
+
+  SequenceType seq_;
+  const py::object value_;
+  const Iterator begin_;
+  Iterator curr_;
+  const Iterator end_;
 
 public:
-  IndexesIterator(py::sequence seq, py::object value, size_t start, size_t end)
-      : seq_{seq}, value_{value}, start_{start}, end_{end} {}
+  IndexesIterator(SequenceType seq, py::object value, size_t start_index,
+                  size_t end_index)
+      : seq_{seq}, value_{value}, begin_{seq.begin()},
+        curr_{begin_ + start_index}, end_{begin_ + end_index} {}
 
-  IndexesIterator(py::sequence seq, py::object value)
-      : IndexesIterator{seq, value, /*start*/ 0, /*end*/ seq.size()} {}
+  IndexesIterator(SequenceType seq, py::object value)
+      : IndexesIterator{seq, value, /*begin_index*/ 0, /*end_index*/ 0} {}
 
-  IndexesIterator iter() { return *this; }
+  IndexesIterator iter() const { return *this; }
+
   size_t next() {
-    while (start_ < end_) {
-      const auto idx = start_++;
-      assert(0 <= idx && idx < seq_.size());
-      const py::object &elem = seq_[idx];
-      if (elem.equal(value_)) {
-        return idx;
+    if (curr_ < end_) {
+      const auto found = curr_ =
+          std::find_if(curr_, end_, [this](const auto &elem) {
+            PyObject *ptr = elem.ptr();
+            return value_.equal(py::handle{ptr});
+          });
+      curr_++;
+      if (found != end_) {
+        return found - begin_;
       }
     }
-    assert(start_ <= end_);
     throw py::stop_iteration{};
   }
 };
 
-IndexesIterator indexes(py::sequence seq, py::object value,
-                        std::optional<py::ssize_t> start,
-                        std::optional<py::ssize_t> end) {
+using SequenceIndexesIterator = IndexesIterator<py::sequence>;
+using ListIndexesIterator = IndexesIterator<py::list>;
+using TupleIndexesIterator = IndexesIterator<py::tuple>;
+
+py::object indexes(py::sequence seq, py::object value,
+                   std::optional<py::ssize_t> start,
+                   std::optional<py::ssize_t> end) {
   const size_t start_index = normalize_index(seq, start.value_or(0));
   const size_t end_index = normalize_index(seq, end.value_or(seq.size()));
-  return IndexesIterator{seq, value, start_index, end_index};
+  if (py::isinstance<py::list>(seq)) {
+    return py::cast(
+        ListIndexesIterator(py::list{seq}, value, start_index, end_index));
+  }
+  if (py::isinstance<py::tuple>(seq)) {
+    return py::cast(
+        TupleIndexesIterator(py::list{seq}, value, start_index, end_index));
+  }
+  return py::cast(SequenceIndexesIterator{seq, value, start_index, end_index});
 }
 
 } // namespace miter
@@ -69,9 +88,17 @@ IndexesIterator indexes(py::sequence seq, py::object value,
 PYBIND11_MODULE(_seqtools, m) {
   using namespace pybind11::literals;
 
-  py::class_<miter::IndexesIterator>(m, "_IndexesIterator")
-      .def("__iter__", &miter::IndexesIterator::iter)
-      .def("__next__", &miter::IndexesIterator::next);
+  py::class_<miter::SequenceIndexesIterator>(m, "_SequenceIndexesIterator")
+      .def("__iter__", &miter::SequenceIndexesIterator::iter)
+      .def("__next__", &miter::SequenceIndexesIterator::next);
+
+  py::class_<miter::ListIndexesIterator>(m, "_ListIndexesIterator")
+      .def("__iter__", &miter::ListIndexesIterator::iter)
+      .def("__next__", &miter::ListIndexesIterator::next);
+
+  py::class_<miter::TupleIndexesIterator>(m, "_TupleIndexesIterator")
+      .def("__iter__", &miter::TupleIndexesIterator::iter)
+      .def("__next__", &miter::TupleIndexesIterator::next);
 
   m.def("indexes", &miter::indexes, "sequence"_a, "value"_a,
         "start"_a = std::nullopt, "end"_a = std::nullopt,
