@@ -58,5 +58,16 @@ jobs:
       - name: Install package
         run: python -m pip install -e .[test]
 
-      - name: Test package
-        run: python -m pytest -ra
+      - name: Test package with C++ extension implementation
+        env:
+          MITER_IMPLEMENTATION: "PYTHON_SOURCE"
+        run: |
+          python -c 'import miter; assert miter.implementation() == miter.Impl.PYTHON_SOURCE'
+          python -m pytest -ra
+
+      - name: Test package with Python implementation
+        env:
+          MITER_IMPLEMENTATION: "CPP_EXTENSION"
+        run: |
+          python -c 'import miter; assert miter.implementation() == miter.Impl.CPP_EXTENSION'
+          python -m pytest -ra
