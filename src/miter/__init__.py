@@ -6,80 +6,68 @@ miter: Python utility library for iterables and sequences
 from __future__ import annotations
 
 import enum as _enum
-from functools import lru_cache
-from typing import Optional
+import functools as _functools
+import os as _os
+import warnings as _warnings
 
 from ._version import version as __version__
 
 __all__ = ("__version__",)
 
 
-class ImplPreference(_enum.Enum):
-    """Enum of implementation preferences."""
-
-    PREFER_CPP = 0
-    REQUIRE_PYTHON = 1
-    REQUIRE_CPP = 2
-
-
-class ImplResolution(_enum.Enum):
+class Impl(_enum.Enum):
     """Enum indicating a selected implementation."""
 
-    PYTHON = 1
-    CPP = 2
+    PYTHON_SOURCE = 0
+    CPP_EXTENSION = 1
 
 
-@lru_cache()
-def _get_impl_preference(override: Optional[str] = None) -> ImplPreference:
-    """Return the implementation preference from the 'MITER_IMPLEMENTATION' environment variable.
-    To allow testing, if `override` is provided, its value is used instead.
-
-    Examples:
-    >>> _get_impl_preference("")
-    <ImplPreference.PREFER_CPP: 0>
-    >>> _get_impl_preference("require_python")
-    <ImplPreference.REQUIRE_PYTHON: 1>
-    >>> _get_impl_preference("bad_choice")
-    Traceback (most recent call last):
-    ...
-    ValueError: Invalid MITER_IMPLEMENTATION value: 'bad_choice'. Valid values are: PREFER_CPP, REQUIRE_PYTHON, REQUIRE_CPP
-    """
-    import os
-
-    value: Optional[str] = override or os.environ.get("MITER_IMPLEMENTATION")
-    if value is None:
-        return ImplPreference.PREFER_CPP  # Default
-
-    try:
-        return ImplPreference[value.upper()]
-    except KeyError:
-        valid_values = ", ".join(pref.name for pref in ImplPreference)
-        raise ValueError(
-            f"Invalid MITER_IMPLEMENTATION value: {value!r}. Valid values are: {valid_values}"
-        )
-
-
-def is_cpp_impl_available() -> bool:
+def all_cpp_modules_available() -> bool:
     """Return whether C++ extension implementations are available for all `miter` modules."""
     try:
-        import miter._seqtools  # noqa: F401
+        import miter._seqtools  # pylint: disable=W0611,C0415 # noqa: F401
 
         return True
     except ImportError:
         return False
 
 
-@lru_cache()
-def resolved_implementation(pref: Optional[ImplPreference] = None) -> ImplResolution:
-    """Return the implementation corresponding to `pref`."""
-    resolutions = {
-        ImplPreference.PREFER_CPP: (
-            ImplResolution.CPP if is_cpp_impl_available() else ImplResolution.PYTHON
-        ),
-        ImplPreference.REQUIRE_PYTHON: ImplResolution.PYTHON,
-        ImplPreference.REQUIRE_CPP: ImplResolution.CPP,
-    }
-    # The following lookup should always succeed, since `resolutions` contains all
-    # enum values.
-    assert set(resolutions.keys()) == set(ImplPreference)
-    return resolutions[pref or _get_impl_preference()]
+def _selected_implementation(preference: str) -> Impl:
+    """Return the implementation corresponding to `preference`, which should be one
+    of:   'PYTHON_SOURCE', 'CPP_EXTENSION', 'PREFER_PYTHON_SOURCE', OR 'PREFER_CPP_EXTENSION'.
+
+    Examples:
+    >>> _selected_implementation("PYTHON_SOURCE")
+    <Impl.PYTHON_SOURCE: 0>
+
+    # This assumes that the CPP extension module is available.
+    >>> _selected_implementation("PREFER_CPP_EXTENSION")
+    <Impl.CPP_EXTENSION: 1>
+    """
+    canon_pref: str = preference.upper()
+    if canon_pref in ("PYTHON_SOURCE", "PREFER_PYTHON_SOURCE"):
+        return Impl.PYTHON_SOURCE
+    if canon_pref == "CPP_EXTENSION":
+        if not all_cpp_modules_available():
+            _warnings.warn(
+                f"Miter C++ extension module(s) not available, and selected implementation is {preference!r}. Future imports may fail."
+            )
+        return Impl.CPP_EXTENSION
+    if canon_pref == "PREFER_CPP_EXTENSION":
+        if not all_cpp_modules_available():
+            _warnings.warn(
+                "Miter C++ extension module(s) not available; falling back to pure Python."
+            )
+            return Impl.PYTHON_SOURCE
+
+        return Impl.CPP_EXTENSION
+
+    raise ValueError(f"Unrecognized implementation selection: {preference!r}")
+
+
+@_functools.lru_cache(maxsize=1)
+def implementation() -> Impl:
+    """Return the implementation to use, based on the 'MITER_IMPLEMENTATION' environment variable."""
+    return _selected_implementation(
+        _os.environ.get("MITER_IMPLEMENTATION", "PREFER_CPP_EXTENSION")
+    )
