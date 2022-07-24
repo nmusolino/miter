@@ -39,6 +39,8 @@ def _selected_implementation(preference: str) -> Impl:
     Examples:
     >>> _selected_implementation("PYTHON_SOURCE")
     <Impl.PYTHON_SOURCE: 0>
+    >>> _selected_implementation("CPP_EXTENSION")
+    <Impl.CPP_EXTENSION: 1>
 
     # This assumes that the CPP extension module is available.
     >>> _selected_implementation("PREFER_CPP_EXTENSION")
