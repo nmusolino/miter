@@ -15,11 +15,17 @@ from pybind11.setup_helpers import Pybind11Extension  # isort:skip
 #   Sort input source files if you glob sources to ensure bit-for-bit
 #   reproducible builds (https://github.com/pybind/python_example/pull/53)
 
+CXX_STD = 17
 ext_modules = [
     Pybind11Extension(
         "miter._seqtools",
         ["src/seqtools.cpp"],
-        cxx_std=17,
+        cxx_std=CXX_STD,
+    ),
+    Pybind11Extension(
+        "miter._itertools",
+        ["src/itertools.cpp"],
+        cxx_std=CXX_STD,
     ),
 ]
 
