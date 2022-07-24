@@ -21,7 +21,7 @@ addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config", "--doct
 xfail_strict = true
 filterwarnings = ["error"]
 testpaths = [
-    "src",
+    "src/miter",
     "tests",
 ]
 
