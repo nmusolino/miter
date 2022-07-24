@@ -35,6 +35,6 @@ def indexes(
 
 if miter.implementation() == miter.Impl.CPP_EXTENSION:
 
-    from miter._seqtools import (  # type: ignore[misc]  # pylint: disable=W0611,E0611  # noqa: F401, F811
+    from miter._seqtools import (  # type: ignore[misc]  # pylint: disable=E0401,W0611,E0611  # noqa: F401, F811
         indexes,
     )
