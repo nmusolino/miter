@@ -17,6 +17,17 @@ std::size_t length(py::iterable iterable) {
   return std::distance(iterable.begin(), iterable.end());
 }
 
+bool all_equal(py::iterable iterable) {
+  auto it = std::begin(iterable);
+  const auto end = std::end(iterable);
+  if (it == end) {
+    return true;
+  }
+  py::handle ref_value = *it;
+  return std::all_of(
+      it, end, [ref_value](const py::handle &h) { return h.equal(ref_value); });
+}
+
 // Class that returns the Python-level hash of Python objects.
 struct PyObjectHash {
   std::size_t operator()(const py::handle &obj) const { return py::hash(obj); }
@@ -100,6 +111,9 @@ PYBIND11_MODULE(_itertools, m) {
 Return the number of elements in ``iterable``.  This may be useful for un-sized iterables
 (without a ``__len__`` function).
 )pbdoc");
+
+  m.def("all_equal", &miter::all_equal, "iterable"_a, R"pbdoc(
+Return whether all elements of ``iterable`` are equal to each other.)pbdoc");
 
   m.def("unique", &miter::unique, "iterable"_a, "key"_a = std::nullopt,
         R"pbdoc(

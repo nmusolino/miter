@@ -32,6 +32,26 @@ def length(iterable: Iterable[T]) -> int:
         return sum(1 for _ in iterable)
 
 
+def all_equal(iterable: Iterable[T]) -> bool:
+    """Return whether all elements of ``iterable`` are equal.  This returns True for an
+    empty iterable.
+
+    Examples:
+    >>> all_equal("aaa")
+    True
+    >>> all_equal("aaab")
+    False
+    >>> all_equal("")
+    True
+    """
+    iterable = iter(iterable)
+    try:
+        ref_value = next(iterable)
+    except StopIteration:
+        return True
+    return all(elem == ref_value for elem in iterable)
+
+
 def unique(
     iterable: Iterable[T], key: Optional[Callable[[T], typing.Hashable]] = None
 ) -> Iterable[T]:
