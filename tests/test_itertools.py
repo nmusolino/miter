@@ -4,25 +4,25 @@ import itertools
 
 import pytest
 
-from miter import itertools as mitertools
+import miter
 
 
 def test_length():
-    assert mitertools.length([]) == 0
-    assert mitertools.length([0]) == 1
-    assert mitertools.length([0] * 5) == 5
-    assert mitertools.length("abcde") == 5
-    # Test `mitertools.length()` with a non-sequence iterable.
-    assert mitertools.length(i for i in range(100) if (i % 2 == 0)) == 50
+    assert miter.length([]) == 0
+    assert miter.length([0]) == 1
+    assert miter.length([0] * 5) == 5
+    assert miter.length("abcde") == 5
+    # Test `miter.length()` with a non-sequence iterable.
+    assert miter.length(i for i in range(100) if (i % 2 == 0)) == 50
 
 
 def test_length_for_sequence():
     N = 1_000_000_000
-    assert mitertools.length(range(N)) == N
+    assert miter.length(range(N)) == N
 
 
 def test_unique():
-    unique = mitertools.unique
+    unique = miter.unique
     # Test with zero elements.
     assert list(unique([])) == []
     # Test with repeated elements.
@@ -35,6 +35,6 @@ def test_unique():
 
 
 def test_unique_unhashable_elements():
-    unique = mitertools.unique
+    unique = miter.unique
     with pytest.raises(TypeError):
         list(unique([[], [1], [2]]))

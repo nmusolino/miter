@@ -18,13 +18,8 @@ from pybind11.setup_helpers import Pybind11Extension  # isort:skip
 CXX_STD = 17
 ext_modules = [
     Pybind11Extension(
-        "miter._seqtools",
-        ["src/seqtools.cpp"],
-        cxx_std=CXX_STD,
-    ),
-    Pybind11Extension(
-        "miter._itertools",
-        ["src/itertools.cpp"],
+        "miter._miter",
+        ["src/miter.cpp"],
         cxx_std=CXX_STD,
     ),
 ]

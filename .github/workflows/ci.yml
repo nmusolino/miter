@@ -60,14 +60,14 @@ jobs:
 
       - name: Test package with C++ extension implementation
         env:
-          MITER_IMPLEMENTATION: "PYTHON_SOURCE"
+          MITER_IMPL: "REQUIRE_PYTHON"
         run: |
-          python -c 'import miter; assert miter.implementation() == miter.Impl.PYTHON_SOURCE'
+          python -c 'import miter; assert miter.is_implementation_pure_python_module()'
           python -m pytest -ra
 
       - name: Test package with Python implementation
         env:
-          MITER_IMPLEMENTATION: "CPP_EXTENSION"
+          MITER_IMPL: "REQUIRE_CPP"
         run: |
-          python -c 'import miter; assert miter.implementation() == miter.Impl.CPP_EXTENSION'
+          python -c 'import miter; assert miter.is_implementation_cpp_extension_module()'
           python -m pytest -ra
