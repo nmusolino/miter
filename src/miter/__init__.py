@@ -137,6 +137,8 @@ if _IMPL_PREFERENCE not in _IMPL_PREFERENCE_VALID_VALUES:
 
 
 class Impl(_enum.Enum):
+    """Enum indicating a selected implementation."""
+
     PYTHON_MODULE = "PYTHON_MODULE"
     CPP_EXT_MODULE = "CPP_EXT_MODULE"
 
@@ -150,10 +152,10 @@ if _IMPL_PREFERENCE in ("REQUIRE_PYTHON", "PREFER_PYTHON"):
 elif _IMPL_PREFERENCE in ("REQUIRE_CPP", "PREFER_CPP"):
     try:
         from miter._miter import (  # type: ignore[misc] # pylint: disable=E0401,W0611,E0611  # noqa: F401, F811
-            length,
             all_equal,
-            unique,
             indexes,
+            length,
+            unique,
         )
 
         MITER_IMPL = CPP_EXT_MODULE
@@ -172,8 +174,10 @@ del _IMPL_PREFERENCE
 
 
 def is_implementation_cpp_extension_module() -> bool:
+    """Return whether ``miter`` is using the C++ extension module as its implementation."""
     return MITER_IMPL == CPP_EXT_MODULE
 
 
 def is_implementation_pure_python_module() -> bool:
+    """Return whether ``miter`` is using this pure Python module as its implementation."""
     return MITER_IMPL == PYTHON_MODULE
