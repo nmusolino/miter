@@ -22,11 +22,6 @@ ext_modules = [
         ["src/miter.cpp"],
         cxx_std=CXX_STD,
     ),
-    Pybind11Extension(
-        "miter._itertools",
-        ["src/itertools.cpp"],
-        cxx_std=CXX_STD,
-    ),
 ]
 
 
