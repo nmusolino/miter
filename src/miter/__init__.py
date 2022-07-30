@@ -14,11 +14,16 @@ from typing import Callable, Iterable, Optional, Sequence, TypeVar
 
 from ._version import version as __version__
 
-__all__ = ("__version__",)
-
-
 T = TypeVar("T")
 
+
+__all__ = (
+    "__version__",
+    "length",
+    "all_equal",
+    "unique",
+    "indexes",
+)
 
 # ITERABLES UTILITIES
 
@@ -151,7 +156,7 @@ if _IMPL_PREFERENCE in ("REQUIRE_PYTHON", "PREFER_PYTHON"):
     MITER_IMPL = PYTHON_MODULE
 elif _IMPL_PREFERENCE in ("REQUIRE_CPP", "PREFER_CPP"):
     try:
-        from miter._miter import (  # type: ignore[misc] # pylint: disable=E0401,W0611,E0611  # noqa: F401, F811
+        from miter._miter import (  # type: ignore[misc] # pylint: disable=E0401,W0611,E0611  # noqa: F811
             all_equal,
             indexes,
             length,
