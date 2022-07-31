@@ -37,7 +37,7 @@ def tests(session: nox.Session) -> None:
 @nox.session
 def benchmarks(session: nox.Session) -> None:
     """
-    Run the unit and regular tests.
+    Run benchmarks.
     """
     session.install(".", ".[test]")
     session.run(
@@ -56,7 +56,14 @@ def docs(session: nox.Session) -> None:
 
     session.install(".[docs]")
     session.chdir("docs")
-    session.run("sphinx-build", "-M", "html", ".", "_build")
+    session.run(
+        "sphinx-build",
+        "-M",
+        "html",
+        ".",
+        "_build",
+        env=dict(MITER_IMPL="REQUIRE_PYTHON"),
+    )
 
     if session.posargs:
         if "serve" in session.posargs:

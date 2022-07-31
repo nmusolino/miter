@@ -1,20 +1,21 @@
-API
-===
+===================
+Miter API Reference
+===================
 
-This page documents all the functions within ``miter``.
+This page documents the functions and classes within ``miter``.
 
-``seqtools`` module
--------------------
+.. currentmodule:: miter
 
-.. currentmodule:: miter.seqtools
+Utilities for Iterables
+=======================
 
-.. autosummary::
-   indexes
+.. autofunction:: length
 
+.. autofunction:: all_equal
 
-Definitions
------------
+.. autofunction:: unique
 
-.. currentmodule:: miter.seqtools
-.. automodule:: miter.seqtools
-   :members:
+Utilities for Sequences
+=======================
+
+.. autofunction:: indexes

@@ -29,18 +29,16 @@ __all__ = (
 
 
 def length(iterable: Iterable[T]) -> int:
-    """Return the number of elements in ``iterable``.  This may be useful for un-sized
-    iterables (without a ``__len__`` function).
+    """Return the number of items in ``iterable``, by simply counting elements if necessary.
 
-    This function potentially consumes the iterable, but when possible, ``len(iterable)``
-    is returned without iterating over the argument.
+        >>> length(i for i in range(10) if i % 2 == 0)
+        5
 
-    Examples:
-    >>> length(i for i in range(10) if i % 2 == 0)
-    5
-    >>> r = range(1_000_000_000)
-    >>> length(r)
-    1000000000
+    If necessary, the iterable is consumed.  For Sized arguments, ``len(iterable)`` is
+    returned without iterating over all elements.
+
+        >>> length(range(1_000_000))
+        1000000
     """
     try:
         maybe_sized = typing.cast(collections.abc.Sized, iterable)
@@ -50,16 +48,17 @@ def length(iterable: Iterable[T]) -> int:
 
 
 def all_equal(iterable: Iterable[T]) -> bool:
-    """Return whether all elements of ``iterable`` are equal.  This returns True for an
-    empty iterable.
+    """Return whether all elements of ``iterable`` are equal to each other.
 
-    Examples:
-    >>> all_equal("aaa")
-    True
-    >>> all_equal("aaab")
-    False
-    >>> all_equal("")
-    True
+        >>> all_equal("aaa")
+        True
+        >>> all_equal("aaab")
+        False
+
+    This function returns True for an empty iterable.
+
+        >>> all_equal([])
+        True
     """
     iterable = iter(iterable)
     try:
@@ -72,16 +71,18 @@ def all_equal(iterable: Iterable[T]) -> bool:
 def unique(
     iterable: Iterable[T], key: Optional[Callable[[T], typing.Hashable]] = None
 ) -> Iterable[T]:
-    """Yield the unique elements in ``iterable``, according to ``key``, preserving order.
+    """Yield the unique elements in ``iterable``, according to ``key``, in order.
 
-    Values provided by ``iterable`` (or if a key is provided, the results of applying
-    ``key`` to those values) must be hashable.
+        >>> list(unique("abracadabra"))
+        ['a', 'b', 'r', 'c', 'd']
+
+    If ``key`` is omitted, the identity function is used.  Values provided by ``iterable``
+    (or if a key is provided, the results of applying ``key`` to those values) must be hashable.
+
+        >>> list(unique("aAbBcCD", key=str.lower))
+        ['a', 'b', 'c', 'D']
 
     This function uses auxiliary storage in both the Python and C++ implementations.
-
-    Examples:
-    >>> list(unique([0, 1, 1, 0, 2, 2, 3, 1]))
-    [0, 1, 2, 3]
     """
     if key is None:
         observed_elems = set()
@@ -106,15 +107,15 @@ def indexes(
 ) -> Iterable[int]:
     """Return an iterator over the indexes of all elements equal to ``value`` in ``sequence``.
 
+        >>> list(indexes("abracadabra", "a"))
+        [0, 3, 5, 7, 10]
+
     If provided, the ``start`` and ``end`` parameters are interpreted as in slice notation
     and are used to limit the search to a particular subsequence, as in the builtin
     ``list.index()`` method.
 
-    Examples:
-    >>> list(indexes("abracadabra", "a"))
-    [0, 3, 5, 7, 10]
-    >>> list(indexes([0, 1, 2, 3], 2, 1, -1))
-    [2]
+        >>> list(indexes([0, 1, 4, 4], 4, start=1, end=3))
+        [2]
     """
     n: int = len(seq)  # pylint: disable=C0103
     # Clamp to range [-n, n).
