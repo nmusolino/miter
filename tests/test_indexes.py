@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import array
+import collections
 import functools
 import itertools
 from typing import List
@@ -12,8 +13,19 @@ from hypothesis import strategies as st
 import miter
 
 
+def is_unique(coll: collections.abc.Collection) -> bool:
+    """Return whether the elements of ``coll`` are unique."""
+    return len(set(coll)) == len(coll)
+
+
 def test_indexes_empty_sequence():
     assert list(miter.indexes([], 0)) == []
+
+
+def test_indexes_non_sequence():
+    nonseq = set(range(5))
+    with pytest.raises(TypeError):
+        miter.indexes(nonseq, 0)
 
 
 def test_indexes_simple_sequence():
@@ -54,73 +66,73 @@ def test_indexes_with_long_sequence():
 
 @hypothesis.given(st.lists(st.integers(min_value=0, max_value=10)))
 @hypothesis.settings(max_examples=200)
-def test_indexes_properties(s: List[int]):
+def test_indexes_properties(seq: List[int]):
+    hypothesis.assume(seq)
     # Property-based test that calls `miter.indexes()` and makes assertions about
     # the result.
-    n: int = len(s)
+    n: int = len(seq)
 
-    # Search for a value that is present in `s`, if possible.
-    value = s[-1] if s else None
+    # Search for the most common element in `s`, if possible.
+    [(value, _)] = collections.Counter(seq).most_common(1)
 
-    ixs: List[int] = list(miter.indexes(s, value))
+    ixs: List[int] = list(miter.indexes(seq, value))
 
     assert sorted(ixs) == ixs, "Expected sorted indexes."
-    assert len(set(ixs)) == len(ixs), "Expected unique indexes."
+    assert is_unique(ixs), "Expected unique indexes."
 
     # Elements at every returned index should equal `value`.
     for i in ixs:
-        assert s[i] == value
+        assert seq[i] == value
 
     # Elements at every *other* valid index should not equal `value`.
     ixs_complement: List[int] = sorted(set(range(n)) - set(ixs))
     for i in ixs_complement:
-        assert s[i] != value
+        assert seq[i] != value
 
 
-def test_indexes_with_start():
-    seq = [3, 4, 5, 6]
+@hypothesis.given(st.lists(st.integers(), unique=True))
+def test_indexes_with_start(seq):
+    # For a unique list, the result returned by `miter.indexes()` should
+    # match the result from the builtin `list.index()` method.
+    assert is_unique(seq), "Expected unique sequence based on hypothesis strategy."
+
     for value, start in itertools.product(seq, range(len(seq))):
         try:
-            expected = seq.index(value, start)
+            expected_ixs = [seq.index(value, start)]
         except ValueError:
-            expected = None
+            expected_ixs = []  # No indexes.
 
-        if expected is not None:
-            assert list(miter.indexes(seq, value)) == [expected]
-        else:
-            assert list(miter.indexes(seq, value, start=start)) == []
+        assert list(miter.indexes(seq, value, start=start)) == expected_ixs
 
 
-def test_indexes_with_end():
-    seq = [3, 4, 5, 6]
+@hypothesis.given(st.lists(st.integers(), unique=True))
+def test_indexes_with_end(seq):
+    # For a unique list, the result returned by `miter.indexes()` should
+    # match the result from the builtin `list.index()` method.
+    assert is_unique(seq), "Expected unique sequence from hypothesis strategy."
+
     for value, end in itertools.product(seq, range(len(seq))):
         try:
-            expected = seq.index(value, 0, end)
+            expected_ixs = [seq.index(value, 0, end)]
         except ValueError:
-            expected = None
+            expected_ixs = []
 
-        if expected is not None:
-            assert list(miter.indexes(seq, value)) == [expected]
-        else:
-            assert list(miter.indexes(seq, value, end=end)) == []
+        assert list(miter.indexes(seq, value, end=end)) == expected_ixs
 
 
-def test_indexes_with_start_end():
-    seq = [3, 4, 5, 6]
+# Each example requires O(N^3) iterations within the test, so restrict list size.
+@hypothesis.given(st.lists(st.integers(), max_size=10, unique=True))
+@hypothesis.settings(max_examples=50)
+def test_indexes_with_start_end(seq):
+    # For a unique list, the result returned by `miter.indexes()` should
+    # match the result from the builtin `list.index()` method.
+    assert is_unique(seq), "Expected unique sequence from hypothesis strategy."
+
     n = len(seq)
     for value, start, end in itertools.product(seq, range(-n, n), range(-n, n)):
         try:
-            expected = seq.index(value, start, end)
+            expected_ixs = [seq.index(value, start, end)]
         except ValueError:
-            expected = None
+            expected_ixs = []
 
-        if expected is not None:
-            assert list(miter.indexes(seq, value, start, end)) == [expected]
-        else:
-            assert list(miter.indexes(seq, value, start, end)) == []
-
-
-def test_indexes_non_sequence():
-    nonseq = set(range(5))
-    with pytest.raises(TypeError):
-        miter.indexes(nonseq, 0)
+        assert list(miter.indexes(seq, value, start=start, end=end)) == expected_ixs
