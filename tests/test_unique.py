@@ -4,8 +4,8 @@ import itertools
 import string
 
 import hypothesis
-from hypothesis import strategies as st
 import pytest
+from hypothesis import strategies as st
 
 import miter
 

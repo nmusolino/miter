@@ -5,7 +5,6 @@ import itertools
 import hypothesis
 from hypothesis import strategies as st
 
-
 import miter
 
 
@@ -27,7 +26,10 @@ def test_all_unique():
     assert not miter.all_unique("abcdA", key=str.upper)
 
 
-element_type_strategy = st.booleans() | st.characters() | st.integers() | st.tuples(st.integers())
+element_type_strategy = (
+    st.booleans() | st.characters() | st.integers() | st.tuples(st.integers())
+)
+
 
 @hypothesis.given(st.iterables(element_type_strategy, unique=True))
 def test_all_unique_for_unique_iterable(it):
