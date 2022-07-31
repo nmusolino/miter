@@ -19,4 +19,3 @@ Utilities for Sequences
 =======================
 
 .. autofunction:: indexes
-

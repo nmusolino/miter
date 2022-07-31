@@ -56,7 +56,14 @@ def docs(session: nox.Session) -> None:
 
     session.install(".[docs]")
     session.chdir("docs")
-    session.run("sphinx-build", "-M", "html", ".", "_build", env=dict(MITER_IMPL="REQUIRE_PYTHON"))
+    session.run(
+        "sphinx-build",
+        "-M",
+        "html",
+        ".",
+        "_build",
+        env=dict(MITER_IMPL="REQUIRE_PYTHON"),
+    )
 
     if session.posargs:
         if "serve" in session.posargs:
