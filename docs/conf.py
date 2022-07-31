@@ -25,8 +25,8 @@ extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
-    "sphinx.ext.mathjax",
-    "sphinx.ext.napoleon",
+    "sphinx.ext.doctest",
+    # "sphinx.ext.napoleon",
     "sphinx_copybutton",
 ]
 
@@ -38,6 +38,10 @@ templates_path = []
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "**.ipynb_checkpoints", "Thumbs.db", ".DS_Store", ".env"]
 
+# Whether to add module names to function names, as in `miter.all_equal()`.
+add_module_names = True
+# Whether to strip module names from type annotations (?).
+python_use_unqualified_type_names = True
 
 # -- Options for HTML output -------------------------------------------------
 
