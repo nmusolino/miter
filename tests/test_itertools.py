@@ -7,20 +7,6 @@ import pytest
 import miter
 
 
-def test_length():
-    assert miter.length([]) == 0
-    assert miter.length([0]) == 1
-    assert miter.length([0] * 5) == 5
-    assert miter.length("abcde") == 5
-    # Test `miter.length()` with a non-sequence iterable.
-    assert miter.length(i for i in range(100) if (i % 2 == 0)) == 50
-
-
-def test_length_for_sequence():
-    N = 1_000_000_000
-    assert miter.length(range(N)) == N
-
-
 def test_all_unique():
     # Test some simple sequences.
     assert miter.all_unique([])
