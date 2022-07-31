@@ -21,6 +21,24 @@ def test_length_for_sequence():
     assert miter.length(range(N)) == N
 
 
+def test_all_unique():
+    # Test some simple sequences.
+    assert miter.all_unique([])
+    assert miter.all_unique([0])
+    assert miter.all_unique([0, 1, 2])
+    assert miter.all_unique(range(100))
+    assert not miter.all_unique([0, 0])
+    assert not miter.all_unique([0] * 1_000)
+
+    # Test with key.
+    assert miter.all_unique(range(100), key=lambda i: i % 100)
+    assert not miter.all_unique(range(100), key=lambda i: i % 10)
+
+    # Test with strings
+    assert miter.all_unique("abcdA")
+    assert not miter.all_unique("abcdA", key=str.upper)
+
+
 def test_unique():
     unique = miter.unique
     # Test with zero elements.

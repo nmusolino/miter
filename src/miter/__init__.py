@@ -21,6 +21,7 @@ __all__ = (
     "__version__",
     "length",
     "all_equal",
+    "all_unique",
     "unique",
     "indexes",
 )
@@ -66,6 +67,38 @@ def all_equal(iterable: Iterable[T]) -> bool:
     except StopIteration:
         return True
     return all(elem == ref_value for elem in iterable)
+
+
+def all_unique(
+    iterable: Iterable[T], key: Optional[Callable[[T], typing.Hashable]] = None
+) -> bool:
+    """Return whether all elements of ``iterable`` are unique (i.e. no two elements are equal).
+
+        >>> all_unique([0, 1, 2])
+        True
+        >>> all_unique([0, 1, 2, 2])
+        False
+
+    If ``key`` is specified, it will be used to compare elements.
+
+        >>> all_unique(range(100), key=lambda i: i % 10)
+        False
+    """
+    if key is None:
+        observed_elems = set()
+        for elem in iterable:
+            if elem in observed_elems:
+                return False
+            observed_elems.add(elem)
+    else:
+        observed_keys = set()
+        for elem in iterable:
+            elem_key = key(elem)
+            if elem_key in observed_keys:
+                return False
+            observed_keys.add(elem_key)
+
+    return True
 
 
 def unique(
@@ -159,6 +192,7 @@ elif _IMPL_PREFERENCE in ("REQUIRE_CPP", "PREFER_CPP"):
     try:
         from miter._miter import (  # type: ignore[misc] # pylint: disable=E0401,W0611,E0611  # noqa: F811
             all_equal,
+            all_unique,
             indexes,
             length,
             unique,
