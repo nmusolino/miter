@@ -98,6 +98,27 @@ py::object unique(py::iterable iterable, std::optional<py::function> key) {
                          : py::cast(IdentityUniqueIterator{iterable, {}});
 };
 
+template <typename It, typename Key>
+bool all_unique_impl(It begin, It end, Key key) {
+  std::unordered_set<py::object, detail::PyObjectHash, detail::PyObjectEqual>
+      unique_elements;
+
+  return std::all_of(begin, end, [&unique_elements, &key](const py::handle &h) {
+    py::object key_result = key(h);
+    auto [_, inserted] = unique_elements.insert(key_result);
+    return inserted;
+  });
+}
+
+bool all_unique(py::iterable iterable, std::optional<py::function> key) {
+  // TODO(nmusolino): specialize for container-specific iterators.
+  return key.has_value()
+             ? all_unique_impl(std::begin(iterable), std::end(iterable),
+                               detail::CallableKey{*key})
+             : all_unique_impl(std::begin(iterable), std::end(iterable),
+                               detail::IdentityKey{});
+}
+
 namespace detail {
 
 // Normalize or fix-up the index of `seq` so that it is a valid index.
@@ -201,6 +222,13 @@ Return whether all elements of ``iterable`` are equal to each other.)pbdoc");
   m.def("unique", &miter::unique, "iterable"_a, "key"_a = std::nullopt,
         R"pbdoc(
 Return an iterable over the unique elements in ``iterable``, according to ``key``, preserving order.
+)pbdoc");
+
+  m.def("all_unique", &miter::all_unique, "iterable"_a, "key"_a = std::nullopt,
+        R"pbdoc(
+Return whether all elements of ``iterable`` are unique (i.e. no two elements are equal).
+
+If ``key`` is specified, it will be used to compare elements.
 )pbdoc");
 
   py::class_<miter::SequenceIndexesIterator>(m, "_SequenceIndexesIterator")
