@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import copy
+import itertools
 
 import hypothesis
 from hypothesis import strategies as st
@@ -25,8 +25,8 @@ def test_length_for_long_sequence():
 @hypothesis.given(st.iterables(st.integers()))
 def test_length_for_nonsequence(it):
     # Confirm that `miter.length()` returns the value obtained by an alternative approach.
-    expected_length: int = sum(1 for _ in copy.deepcopy(it))  # Need to copy iterator.
-    assert miter.length(it) == expected_length
+    it, it_copy = itertools.tee(it)  # Need to accommodate single-pass iterator.
+    assert miter.length(it) == sum(1 for _ in it_copy)
 
 
 @hypothesis.given(st.lists(st.integers()))
