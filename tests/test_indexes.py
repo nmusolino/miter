@@ -3,8 +3,11 @@ from __future__ import annotations
 import array
 import functools
 import itertools
+from typing import List
 
+import hypothesis
 import pytest
+from hypothesis import strategies as st
 
 import miter
 
@@ -49,16 +52,32 @@ def test_indexes_with_long_sequence():
     assert list(miter.indexes(seq, 5)) == [5]
 
 
+@hypothesis.given(st.lists(st.integers(min_value=0, max_value=10)))
+@hypothesis.settings(max_examples=200)
+def test_indexes_properties(s: List[int]):
+    # Property-based test that calls `miter.indexes()` and makes assertions about
+    # the result.
+    n: int = len(s)
+
+    # Search for a value that is present in `s`, if possible.
+    value = s[-1] if s else None
+
+    ixs: List[int] = list(miter.indexes(s, value))
+
+    assert sorted(ixs) == ixs, "Expected sorted indexes."
+    assert len(set(ixs)) == len(ixs), "Expected unique indexes."
+
+    # Elements at every returned index should equal `value`.
+    for i in ixs:
+        assert s[i] == value
+
+    # Elements at every *other* valid index should not equal `value`.
+    ixs_complement: List[int] = sorted(set(range(n)) - set(ixs))
+    for i in ixs_complement:
+        assert s[i] != value
+
+
 def test_indexes_with_start():
-    seq = [3, 4, 5, 6]
-    assert list(miter.indexes(seq, 4, start=0)) == [1]
-    assert list(miter.indexes(seq, 4, start=1)) == [1]
-    assert list(miter.indexes(seq, 4, start=2)) == []
-    assert list(miter.indexes(seq, 4, start=3)) == []
-    assert list(miter.indexes(seq, 4, start=4)) == []
-
-
-def test_indexes_with_start_systematic():
     seq = [3, 4, 5, 6]
     for value, start in itertools.product(seq, range(len(seq))):
         try:
