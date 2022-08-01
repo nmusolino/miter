@@ -6,7 +6,7 @@ import string
 
 import pytest
 
-import miter.seqtools
+import miter
 
 
 @functools.cache
@@ -39,17 +39,20 @@ def indexes_repeated_index(seq, value):
     [
         indexes_filtered_enumerate,
         indexes_repeated_index,
-        pytest.param(miter.seqtools.indexes, id="miter.seqtools.indexes"),
+        pytest.param(miter.indexes, id="miter.indexes"),
     ],
 )
 @pytest.mark.parametrize("seq_type", [list, tuple, str, bytes])
 def test_indexes(benchmark, seq_type, indexes_impl):
+    def listed_indexes(seq, value):
+        return list(indexes_impl(seq, value))
+
     n = 16 * 1024
     seq = sample_sequence(seq_type, n)
     assert isinstance(seq, seq_type)
 
     value = seq[0]
-    result = benchmark(indexes_filtered_enumerate, seq, value)
+    result = benchmark(listed_indexes, seq, value)
 
     assert all(seq[i] == value for i in result)
     assert len(result) == sum(int(elem == value) for elem in seq)
