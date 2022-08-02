@@ -17,7 +17,7 @@ def sample_sequence(type_, n):
 
 
 def indexes_filtered_enumerate(seq, value):
-    return [i for i, elem in enumerate(seq) if elem == value]
+    return (i for i, elem in enumerate(seq) if elem == value)
 
 
 def indexes_repeated_index(seq, value):
@@ -31,7 +31,7 @@ def indexes_repeated_index(seq, value):
         except ValueError:
             pass
 
-    return list(index_generator())
+    return index_generator()
 
 
 @pytest.mark.parametrize(
