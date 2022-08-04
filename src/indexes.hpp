@@ -11,7 +11,6 @@
 namespace py = pybind11;
 
 namespace miter {
-namespace detail {
 
 // Normalize or fix-up the index of `seq` so that it is a valid index.
 //
@@ -30,10 +29,8 @@ size_t normalize_index(const py::sequence &seq, py::ssize_t index) {
 template <typename SequenceType>
 using SequenceIterator = decltype(std::declval<SequenceType>().begin());
 
-} // namespace detail
-
 template <typename SequenceType> class IndexesIterator {
-  using Iterator = detail::SequenceIterator<SequenceType>;
+  using Iterator = SequenceIterator<SequenceType>;
 
   SequenceType seq_;
   const py::object value_;
@@ -75,9 +72,8 @@ using TupleIndexesIterator = IndexesIterator<py::tuple>;
 py::object indexes(py::sequence seq, py::object value,
                    std::optional<py::ssize_t> start,
                    std::optional<py::ssize_t> end) {
-  const size_t start_index = detail::normalize_index(seq, start.value_or(0));
-  const size_t end_index =
-      detail::normalize_index(seq, end.value_or(seq.size()));
+  const size_t start_index = normalize_index(seq, start.value_or(0));
+  const size_t end_index = normalize_index(seq, end.value_or(seq.size()));
   if (py::isinstance<py::list>(seq)) {
     return py::cast(
         ListIndexesIterator(py::list{seq}, value, start_index, end_index));

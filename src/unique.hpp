@@ -7,15 +7,14 @@
 #include <pybind11/stl.h> // for std::optional
 
 namespace miter {
-namespace detail {
 
 // Class that returns the Python-level hash of Python objects.
-struct PyObjectHash {
+struct ObjectHash {
   std::size_t operator()(const py::handle &obj) const { return py::hash(obj); }
 };
 
 // Class that compares Python objects using the Python equality operator.
-struct PyObjectEqual {
+struct ObjectEqual {
   bool operator()(const py::handle &lhs, const py::handle &rhs) const {
     return lhs.equal(rhs);
   }
@@ -36,8 +35,6 @@ public:
 
   py::object operator()(const py::handle &obj) const { return func_(obj); }
 };
-
-} // namespace detail
 
 std::size_t length(py::iterable iterable) {
   if (py::isinstance<py::sequence>(iterable)) {
@@ -63,7 +60,7 @@ template <typename Key> class UniqueIterator {
   Key key_;
   py::iterator begin_;
   py::iterator end_;
-  std::unordered_set<py::object, detail::PyObjectHash, detail::PyObjectEqual>
+  std::unordered_set<py::object, miter::ObjectHash, miter::ObjectEqual>
       unique_elements_;
 
 public:
@@ -87,8 +84,8 @@ public:
   }
 };
 
-using IdentityUniqueIterator = UniqueIterator<detail::IdentityKey>;
-using KeyFunctionUniqueIterator = UniqueIterator<detail::CallableKey>;
+using IdentityUniqueIterator = UniqueIterator<IdentityKey>;
+using KeyFunctionUniqueIterator = UniqueIterator<CallableKey>;
 
 py::object unique(py::iterable iterable, std::optional<py::function> key) {
   return key.has_value() ? py::cast(KeyFunctionUniqueIterator{iterable, *key})
@@ -97,7 +94,7 @@ py::object unique(py::iterable iterable, std::optional<py::function> key) {
 
 template <typename It, typename Key>
 bool all_unique_impl(It begin, It end, Key key) {
-  std::unordered_set<py::object, detail::PyObjectHash, detail::PyObjectEqual>
+  std::unordered_set<py::object, miter::ObjectHash, miter::ObjectEqual>
       unique_elements;
 
   return std::all_of(begin, end, [&unique_elements, &key](const py::handle &h) {
@@ -111,8 +108,8 @@ bool all_unique(py::iterable iterable, std::optional<py::function> key) {
   // TODO(nmusolino): specialize for container-specific iterators.
   return key.has_value()
              ? all_unique_impl(std::begin(iterable), std::end(iterable),
-                               detail::CallableKey{*key})
+                               miter::CallableKey{*key})
              : all_unique_impl(std::begin(iterable), std::end(iterable),
-                               detail::IdentityKey{});
+                               miter::IdentityKey{});
 }
 } // namespace miter
