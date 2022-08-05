@@ -17,13 +17,14 @@ namespace miter {
 // The list.index() method does not raise when the user-supplied values of
 // `start` or `end` are incorrect, but instead tries to do what the user means.
 // This function does the same sort of thing.
-size_t normalize_index(const py::sequence &seq, py::ssize_t index) {
-  const auto seq_len = static_cast<py::ssize_t>(seq.size());
-  if (index >= 0) {
-    return std::min(index, seq_len);
-  } else {
-    return std::max(py::ssize_t{0}, seq_len + index);
+py::ssize_t normalize_index(const py::ssize_t seq_length, py::ssize_t index) {
+  if (index < 0) {
+    index += seq_length;
   }
+  if (index < 0) {
+    return 0;
+  }
+  return index;
 }
 
 template <typename SequenceType>
@@ -72,8 +73,9 @@ using TupleIndexesIterator = IndexesIterator<py::tuple>;
 py::object indexes(py::sequence seq, py::object value,
                    std::optional<py::ssize_t> start,
                    std::optional<py::ssize_t> end) {
-  const size_t start_index = normalize_index(seq, start.value_or(0));
-  const size_t end_index = normalize_index(seq, end.value_or(seq.size()));
+  const size_t start_index = normalize_index(seq.size(), start.value_or(0));
+  const size_t end_index =
+      normalize_index(seq.size(), end.value_or(seq.size()));
   if (py::isinstance<py::list>(seq)) {
     return py::cast(
         ListIndexesIterator(py::list{seq}, value, start_index, end_index));
