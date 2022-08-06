@@ -2,6 +2,7 @@
 
 #include <algorithm> // std::min, std::max
 #include <optional>
+#include <string_view>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h> // for std::optional
@@ -9,7 +10,7 @@
 namespace py = pybind11;
 
 namespace miter {
-
+namespace {
 // Normalize or fix-up the index of `seq` so that it is a valid index.
 //
 // The list.index() method does not raise when the user-supplied values of
@@ -24,6 +25,8 @@ py::ssize_t normalize_index(const py::ssize_t seq_length, py::ssize_t index) {
   }
   return index;
 }
+
+} // namespace
 
 template <typename SequenceType>
 using SequenceIterator = decltype(std::declval<SequenceType>().begin());
@@ -85,20 +88,24 @@ py::object indexes(py::sequence seq, py::object value,
   return py::cast(SequenceIndexesIterator{seq, value, start_index, end_index});
 }
 
+namespace {
+
+template <typename T>
+void bind_iterator_class(py::module_ m, std::string_view name) {
+  py::class_<T>(m, name.data())
+      .def("__iter__", &T::iter)
+      .def("__next__", &T::next);
+}
+
+} // namespace
+
 void init_indexes(py::module_ m) {
   using namespace pybind11::literals; // For literal suffix `_a`.
 
-  py::class_<miter::SequenceIndexesIterator>(m, "_SequenceIndexesIterator")
-      .def("__iter__", &miter::SequenceIndexesIterator::iter)
-      .def("__next__", &miter::SequenceIndexesIterator::next);
-
-  py::class_<miter::ListIndexesIterator>(m, "_ListIndexesIterator")
-      .def("__iter__", &miter::ListIndexesIterator::iter)
-      .def("__next__", &miter::ListIndexesIterator::next);
-
-  py::class_<miter::TupleIndexesIterator>(m, "_TupleIndexesIterator")
-      .def("__iter__", &miter::TupleIndexesIterator::iter)
-      .def("__next__", &miter::TupleIndexesIterator::next);
+  bind_iterator_class<miter::SequenceIndexesIterator>(
+      m, "_SequenceIndexesIterator");
+  bind_iterator_class<miter::ListIndexesIterator>(m, "_ListIndexesIterator");
+  bind_iterator_class<miter::TupleIndexesIterator>(m, "_TupleIndexesIterator");
 
   m.def("indexes", &miter::indexes, "sequence"_a, "value"_a,
         "start"_a = std::nullopt, "end"_a = std::nullopt,
