@@ -1,10 +1,10 @@
-#pragma once
-
 #include <algorithm> // std::min, std::max
 #include <optional>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h> // for std::optional
+
+namespace py = pybind11;
 
 namespace miter {
 
@@ -112,4 +112,38 @@ bool all_unique(py::iterable iterable, std::optional<py::function> key) {
              : all_unique_impl(std::begin(iterable), std::end(iterable),
                                miter::IdentityKey{});
 }
+
+void init_unique(py::module_ m) {
+  using namespace pybind11::literals; // For literal suffix `_a`.
+
+  m.def("length", &miter::length, "iterable"_a,
+        R"pbdoc(
+Return the number of elements in ``iterable``.  This may be useful for un-sized iterables
+(without a ``__len__`` function).
+)pbdoc");
+
+  m.def("all_equal", &miter::all_equal, "iterable"_a, R"pbdoc(
+Return whether all elements of ``iterable`` are equal to each other.)pbdoc");
+
+  py::class_<miter::IdentityUniqueIterator>(m, "IdentityUniqueIterator")
+      .def("__iter__", &miter::IdentityUniqueIterator::iter)
+      .def("__next__", &miter::IdentityUniqueIterator::next);
+
+  py::class_<miter::KeyFunctionUniqueIterator>(m, "_KeyFunctionUniqueIterator")
+      .def("__iter__", &miter::KeyFunctionUniqueIterator::iter)
+      .def("__next__", &miter::KeyFunctionUniqueIterator::next);
+
+  m.def("unique", &miter::unique, "iterable"_a, "key"_a = std::nullopt,
+        R"pbdoc(
+Return an iterable over the unique elements in ``iterable``, according to ``key``, preserving order.
+)pbdoc");
+
+  m.def("all_unique", &miter::all_unique, "iterable"_a, "key"_a = std::nullopt,
+        R"pbdoc(
+Return whether all elements of ``iterable`` are unique (i.e. no two elements are equal).
+
+If ``key`` is specified, it will be used to compare elements.
+)pbdoc");
+}
+
 } // namespace miter

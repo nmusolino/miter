@@ -1,5 +1,3 @@
-#pragma once
-
 #include <cstddef>
 
 #include <algorithm> // std::min, std::max
@@ -85,6 +83,31 @@ py::object indexes(py::sequence seq, py::object value,
         TupleIndexesIterator(py::list{seq}, value, start_index, end_index));
   }
   return py::cast(SequenceIndexesIterator{seq, value, start_index, end_index});
+}
+
+void init_indexes(py::module_ m) {
+  using namespace pybind11::literals; // For literal suffix `_a`.
+
+  py::class_<miter::SequenceIndexesIterator>(m, "_SequenceIndexesIterator")
+      .def("__iter__", &miter::SequenceIndexesIterator::iter)
+      .def("__next__", &miter::SequenceIndexesIterator::next);
+
+  py::class_<miter::ListIndexesIterator>(m, "_ListIndexesIterator")
+      .def("__iter__", &miter::ListIndexesIterator::iter)
+      .def("__next__", &miter::ListIndexesIterator::next);
+
+  py::class_<miter::TupleIndexesIterator>(m, "_TupleIndexesIterator")
+      .def("__iter__", &miter::TupleIndexesIterator::iter)
+      .def("__next__", &miter::TupleIndexesIterator::next);
+
+  m.def("indexes", &miter::indexes, "sequence"_a, "value"_a,
+        "start"_a = std::nullopt, "end"_a = std::nullopt,
+        R"pbdoc(
+Return an iterator over the indexes of all elements equal to ``value`` in ``sequence``.
+
+If provided, the ``start`` and ``end`` parameters are interpreted as in slice notation
+and are used to limit the search to a particular subsequence, as in the builtin
+``list.index()`` method.)pbdoc");
 }
 
 } // namespace miter
