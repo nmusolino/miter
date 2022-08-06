@@ -19,7 +19,11 @@ CXX_STD = 17
 ext_modules = [
     Pybind11Extension(
         "miter._miter",
-        ["src/miter.cpp"],
+        [
+            "src/miter.cpp",
+            "src/indexes.cpp",
+            "src/unique.cpp",
+        ],
         cxx_std=CXX_STD,
     ),
 ]
