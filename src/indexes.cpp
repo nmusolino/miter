@@ -71,21 +71,29 @@ using SequenceIndexesIterator = IndexesIterator<py::sequence>;
 using ListIndexesIterator = IndexesIterator<py::list>;
 using TupleIndexesIterator = IndexesIterator<py::tuple>;
 
-py::object indexes(py::sequence seq, py::object value,
-                   std::optional<py::ssize_t> start,
-                   std::optional<py::ssize_t> end) {
-  const size_t start_index = normalize_index(seq.size(), start.value_or(0));
-  const size_t end_index =
-      normalize_index(seq.size(), end.value_or(seq.size()));
-  if (py::isinstance<py::list>(seq)) {
-    return py::cast(
-        ListIndexesIterator(py::list{seq}, value, start_index, end_index));
-  }
-  if (py::isinstance<py::tuple>(seq)) {
-    return py::cast(
-        TupleIndexesIterator(py::list{seq}, value, start_index, end_index));
-  }
-  return py::cast(SequenceIndexesIterator{seq, value, start_index, end_index});
+ListIndexesIterator indexes(py::list seq, py::object value,
+                            std::optional<py::ssize_t> start,
+                            std::optional<py::ssize_t> end) {
+  const size_t start_ix = normalize_index(seq.size(), start.value_or(0));
+  const size_t end_ix = normalize_index(seq.size(), end.value_or(seq.size()));
+  return {seq, value, start_ix, end_ix};
+}
+
+TupleIndexesIterator indexes(py::tuple seq, py::object value,
+                             std::optional<py::ssize_t> start,
+                             std::optional<py::ssize_t> end) {
+  const size_t start_ix = normalize_index(seq.size(), start.value_or(0));
+  const size_t end_ix = normalize_index(seq.size(), end.value_or(seq.size()));
+  return {seq, value, start_ix, end_ix};
+}
+
+// Generic sequence overload.
+SequenceIndexesIterator indexes(py::sequence seq, py::object value,
+                                std::optional<py::ssize_t> start,
+                                std::optional<py::ssize_t> end) {
+  const size_t start_ix = normalize_index(seq.size(), start.value_or(0));
+  const size_t end_ix = normalize_index(seq.size(), end.value_or(seq.size()));
+  return {seq, value, start_ix, end_ix};
 }
 
 namespace {
@@ -107,8 +115,32 @@ void init_indexes(py::module_ m) {
   bind_iterator_class<miter::ListIndexesIterator>(m, "_ListIndexesIterator");
   bind_iterator_class<miter::TupleIndexesIterator>(m, "_TupleIndexesIterator");
 
-  m.def("indexes", &miter::indexes, "sequence"_a, "value"_a,
-        "start"_a = std::nullopt, "end"_a = std::nullopt,
+  // TODO(nmusolino): can we add a docstring that applies to the entire
+  // overload?
+  m.def("indexes",
+        py::overload_cast<py::list, py::object, std::optional<py::ssize_t>,
+                          std::optional<py::ssize_t>>(&miter::indexes),
+        "sequence"_a, "value"_a, "start"_a = std::nullopt,
+        "end"_a = std::nullopt);
+
+  m.def("indexes",
+        py::overload_cast<py::tuple, py::object, std::optional<py::ssize_t>,
+                          std::optional<py::ssize_t>>(&miter::indexes),
+        "sequence"_a, "value"_a, "start"_a = std::nullopt,
+        "end"_a = std::nullopt);
+
+  m.def("indexes",
+        py::overload_cast<py::sequence, py::object, std::optional<py::ssize_t>,
+                          std::optional<py::ssize_t>>(&miter::indexes),
+        "sequence"_a, "value"_a, "start"_a = std::nullopt,
+        "end"_a = std::nullopt);
+
+  // Generic sequence overload.
+  m.def("indexes",
+        py::overload_cast<py::sequence, py::object, std::optional<py::ssize_t>,
+                          std::optional<py::ssize_t>>(&miter::indexes),
+        "sequence"_a, "value"_a, "start"_a = std::nullopt,
+        "end"_a = std::nullopt,
         R"pbdoc(
 Return an iterator over the indexes of all elements equal to ``value`` in ``sequence``.
 
