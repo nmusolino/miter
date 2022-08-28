@@ -47,21 +47,52 @@ def test_indexes_incongruous_value():
     [
         tuple,
         list,
+        bytes,
         pytest.param(functools.partial(array.array, "i"), id="array.array"),
         pytest.param(lambda _: _, id="range"),
     ],
 )
 def test_indexes_with_assorted_sequence_types(type_):
-    seq = type_(range(10))
-    assert list(miter.indexes(seq, -1)) == []
-    assert list(miter.indexes(seq, 0)) == [0]
-    assert list(miter.indexes(seq, 9)) == [9]
+    seq = type_(range(1, 10))
+    assert list(miter.indexes(seq, 0)) == []
+    assert list(miter.indexes(seq, 1)) == [0]
+    assert list(miter.indexes(seq, 9)) == [8]
     assert list(miter.indexes(seq, 10)) == []
 
 
 def test_indexes_with_long_sequence():
     seq = range(1_000_000)
     assert list(miter.indexes(seq, 5)) == [5]
+
+
+def test_indexes_bytes():
+    seq = b"abcde"
+
+    # Test with length-1 bytes argument for `value`.
+    value = seq[2:3]
+    assert isinstance(value, bytes) and len(value) == 1
+    assert list(miter.indexes(seq, value)) == [seq.index(value)]
+
+    # Test with length-2 bytes argument for `value`.
+    value = seq[2:4]
+    assert isinstance(value, bytes) and len(value) == 2
+    assert list(miter.indexes(seq, value)) == [seq.index(value)]
+
+    # Test with integer argument for `value`.
+    value = seq[2]
+    assert isinstance(value, int)
+    assert list(miter.indexes(seq, value)) == [2]
+
+    assert list(miter.indexes(seq, 0xFF)) == []
+
+    with pytest.raises(ValueError):
+        miter.indexes(seq, -1)
+    with pytest.raises(ValueError):
+        miter.indexes(seq, 0x100)
+
+    # When called with a type other than bytes or int, a TypeError is raised.
+    with pytest.raises(TypeError):
+        miter.indexes(seq, "")
 
 
 @hypothesis.given(st.lists(st.integers(min_value=0, max_value=10)))
