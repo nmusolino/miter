@@ -32,14 +32,7 @@ const char *end(const py::bytes &b) { return begin(b) + size(b); }
 
 } // namespace
 
-// Null iterator class that can be returned by functions that always throw.
-class NullIndexesIterator {
-public:
-  NullIndexesIterator iter() const { return *this; }
-  size_t next() { throw py::stop_iteration{}; }
-};
-
-// Class for searching for a single character.
+// Class for searching for a single character in `str` or `bytes`.
 template <typename ObjectType, typename CharType>
 class CharacterIndexesIterator {
   ObjectType seq_;
@@ -67,6 +60,7 @@ public:
   }
 };
 
+// Class for searching for a character sequence in `str` or `bytes`.
 template <typename ObjectType, typename CharType>
 class SubstringIndexesIterator {
   ObjectType seq_;
@@ -87,23 +81,16 @@ public:
   SubstringIndexesIterator iter() const { return *this; }
 
   size_t next() {
-    if (std::distance(value_begin_, value_end_) == 1) {
-      const CharType c = *value_begin_;
-      curr_ = std::find(curr_, end_, c);
-      if (curr_ != end_) {
-        return curr_++ - begin_;
-      }
-    } else {
-      curr_ = std::search(curr_, end_, value_begin_, value_end_);
-      if (curr_ != end_) {
-        return curr_++ - begin_;
-      }
+    // TODO(nmusolino): use std::boyer_moore_horspool_searcher.
+    curr_ = std::search(curr_, end_, value_begin_, value_end_);
+    if (curr_ != end_) {
+      return curr_++ - begin_;
     }
     throw py::stop_iteration{};
   }
 };
 
-// py::bytes overloads
+// OVERLOADS FOR py::bytes
 SubstringIndexesIterator<py::bytes, char>
 indexes(py::bytes seq, py::bytes value, std::optional<py::ssize_t> start,
         std::optional<py::ssize_t> end) {
@@ -116,13 +103,12 @@ indexes(py::bytes seq, py::bytes value, std::optional<py::ssize_t> start,
 CharacterIndexesIterator<py::bytes, char>
 indexes(py::bytes seq, py::int_ value, std::optional<py::ssize_t> start,
         std::optional<py::ssize_t> end) {
-  std::cout << "bytes-int overload." << std::endl;
   const auto seq_size = miter::size(seq);
   const size_t start_ix = normalize_index(seq_size, start.value_or(0));
   const size_t end_ix = normalize_index(seq_size, end.value_or(seq_size));
 
-  // TODO(nmusolino): check that `value` can actually be converted to `int`.
-  const int val = value.operator int();
+  // A Python `int` could overflow `long long`; this is not handled.
+  const long long val = value.operator long long();
   if (!(0 <= val && val < 256)) {
     throw py::value_error{"byte must be in range(0, 256): " +
                           std::to_string(val)};
@@ -260,12 +246,6 @@ void init_indexes(py::module_ m) {
 
   m.def("indexes",
         py::overload_cast<py::tuple, py::object, std::optional<py::ssize_t>,
-                          std::optional<py::ssize_t>>(&miter::indexes),
-        "sequence"_a, "value"_a, "start"_a = std::nullopt,
-        "end"_a = std::nullopt);
-
-  m.def("indexes",
-        py::overload_cast<py::sequence, py::object, std::optional<py::ssize_t>,
                           std::optional<py::ssize_t>>(&miter::indexes),
         "sequence"_a, "value"_a, "start"_a = std::nullopt,
         "end"_a = std::nullopt);
