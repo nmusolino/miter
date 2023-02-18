@@ -12,7 +12,7 @@ import miter
 @functools.cache
 def sample_sequence(type_, n):
     """Return a sample sequence of the given `type` and length `n`."""
-    subsequence = string.ascii_letters if (type_ is str) else range(50)
+    subsequence = string.ascii_letters[0:25] if (type_ is str) else range(25)
     return type_(itertools.islice(itertools.cycle(subsequence), n))
 
 

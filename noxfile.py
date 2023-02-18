@@ -43,7 +43,7 @@ def benchmarks(session: nox.Session) -> None:
     session.run(
         "pytest",
         "--benchmark-group-by=param:seq_type",
-        "benchmarks/test_seqtools_indexes.py",
+        "benchmarks/",
         *session.posargs,
     )
 
