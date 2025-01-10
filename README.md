@@ -6,20 +6,20 @@ nanobind_example
 | pip builds           | [![Pip Action Status][actions-pip-badge]][actions-pip-link] |
 | wheels               | [![Wheel Action Status][actions-wheels-badge]][actions-wheels-link] |
 
-[actions-pip-link]:        https://github.com/wjakob/nanobind_example/actions?query=workflow%3APip
-[actions-pip-badge]:       https://github.com/wjakob/nanobind_example/workflows/Pip/badge.svg
-[actions-wheels-link]:     https://github.com/wjakob/nanobind_example/actions?query=workflow%3AWheels
-[actions-wheels-badge]:    https://github.com/wjakob/nanobind_example/workflows/Wheels/badge.svg
+[actions-pip-link]:        https://github.com/nmusolino/nanobind_example/actions?query=workflow%3APip
+[actions-pip-badge]:       https://github.com/nmusolino/nanobind_example/workflows/Pip/badge.svg
+[actions-wheels-link]:     https://github.com/nmusolino/nanobind_example/actions?query=workflow%3AWheels
+[actions-wheels-badge]:    https://github.com/nmusolino/nanobind_example/workflows/Wheels/badge.svg
 
 
 This repository contains a tiny project showing how to create C++ bindings
-using [nanobind](https://github.com/wjakob/nanobind) and
+using [nanobind](https://github.com/nmusolino/nanobind) and
 [scikit-build-core](https://scikit-build-core.readthedocs.io/en/latest/index.html). It
 was derived from the corresponding _pybind11_ [example
 project](https://github.com/pybind/scikit_build_example/) developed by
 [@henryiii](https://github.com/henryiii).
 
-Furthermore, the [bazel](https://github.com/wjakob/nanobind_example/tree/bazel) branch contains an example
+Furthermore, the [bazel](https://github.com/nmusolino/nanobind_example/tree/bazel) branch contains an example
 on how to build nanobind bindings extensions with Bazel using the [nanobind-bazel](https://github.com/nicholasjng/nanobind-bazel/) project.
 
 Installation
