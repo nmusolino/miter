@@ -16,7 +16,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/nmusolino/nanobind_example"
+Homepage = "https://github.com/nmusolino/miter"
 
 
 [tool.scikit-build]
