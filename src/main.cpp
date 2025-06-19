@@ -1,11 +1,16 @@
-#include <pybind11/pybind11.h>
+#include <string>
+
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/string.h>
+
+namespace nb = nanobind;
 
 std::string hello_from_bin() { return "Hello from miter!"; }
 
-namespace py = pybind11;
+NB_MODULE(_core, m) {
+  using namespace nb::literals;
 
-PYBIND11_MODULE(_core, m) {
-  m.doc() = "pybind11 hello module";
+  m.doc() = "nanobind hello module";
 
   m.def("hello_from_bin", &hello_from_bin, R"pbdoc(
       A function that returns a Hello string.
