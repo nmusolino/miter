@@ -12,7 +12,7 @@ nanobind_add_module(
   STABLE_ABI  # Target Stable ABI for Python 3.12+
   NB_STATIC   # Build libnanobind statically
   # Sources
-  src/main.cpp
+  src/miter/_core/main.cpp
 )
 install(TARGETS _core LIBRARY DESTINATION ${SKBUILD_PROJECT_NAME})
 
