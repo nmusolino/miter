@@ -12,9 +12,12 @@ authors = [
 [dependency-groups]
 dev = [
     "cmake>=4.0.3",
+    "myst-parser>=4.0.1",
     "nanobind>=2.7.0",
+    "python-docs-theme>=2025.5",
     "rust-just>=1.40.0",
     "scikit-build-core>=0.11.4",
+    "sphinx>=8.2.3",
     "uv>=0.7.13",
 ]
 
