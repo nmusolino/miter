@@ -1,18 +1,31 @@
 #include <string>
+#include <cstdint>
 
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/string.h>
 
 namespace nb = nanobind;
 
-std::string hello_from_bin() { return "Hello from miter!"; }
+
+std::int64_t count(nb::iterable iter) {
+    std::int64_t count = 0;
+    // difference_type not available for nanobind iterator.
+    for (auto it = iter.begin(), end = iter.end(); it != end; ++it) {
+        ++count;
+    }
+    return count;
+}
+
+
+
 
 NB_MODULE(_core, m) {
   using namespace nb::literals;
 
   m.doc() = "nanobind hello module";
 
-  m.def("hello_from_bin", &hello_from_bin, R"pbdoc(
-      A function that returns a Hello string.
+  m.def("count", &count, nb::arg("iterable"), R"pbdoc(
+      Return the number of elements in the iterable.
   )pbdoc");
+
 }
