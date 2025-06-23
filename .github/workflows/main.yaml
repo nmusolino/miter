@@ -8,11 +8,13 @@ on:
       - main
 
 jobs:
-  check-out-and-set-up-env:
+  build-wheel:
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
-        os: ["macos-latest", "ubuntu-latest"]
+        os: ["ubuntu-latest"]
+      fail-fast: false # Across matrix
+
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out
@@ -23,19 +25,36 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-  build:
-    needs: [check-out-and-set-up-env]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Build
+      - name: Build wheel
         run: |
-          make build
-          make sync
+          make wheel
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: "wheel_${{ matrix.os }}_${{ matrix.python-version }}"
+          path: dist/*.whl
+          if-no-files-found: error
 
   lint-test:
-    needs: [build]
     runs-on: ubuntu-latest
     steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-python-env
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Download wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: "wheel_${{ matrix.os }}_${{ matrix.python-version }}"
+
+      - name: Install wheel
+        run: uv pip install ${GITHUB_WORKSPACE}/*.whl
+
       - name: Lint
         run: make lint
 
