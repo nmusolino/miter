@@ -9,13 +9,6 @@ This page documents the functions and classes within ``miter``.
 Utilities for Iterables
 =======================
 
-.. autofunction:: length
+.. autofunction:: count
 
-.. autofunction:: all_equal
-
-.. autofunction:: unique
-
-Utilities for Sequences
-=======================
-
-.. autofunction:: indexes
+.. autofunction:: count_if

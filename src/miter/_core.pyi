@@ -1,0 +1,3 @@
+from typing import Iterable
+
+def count(it: Iterable) -> int: ...

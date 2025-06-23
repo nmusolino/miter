@@ -26,8 +26,9 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
+    "python_docs_theme"
     # "sphinx.ext.napoleon",
-    "sphinx_copybutton",
+    # "sphinx_copybutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -48,18 +49,15 @@ python_use_unqualified_type_names = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_book_theme"
+html_theme = "python_docs_theme"
 
 html_title = f"{project}"
 
 html_baseurl = "https://miter.readthedocs.io/en/latest/"
 
-html_theme_options = {
-    "home_page_in_toc": True,
-    "repository_url": "https://github.com/nmusolino/miter",
-    "use_repository_button": True,
-    "use_issues_button": True,
-    "use_edit_page_button": True,
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-html_sidebars
+html_sidebars = {
+   '**': ['globaltoc.html', 'sourcelink.html', 'searchbox.html'],
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
