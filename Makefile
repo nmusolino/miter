@@ -1,5 +1,5 @@
 
-.PHONY: build check docs format format-makefile generate-compile-commands help lint lint-makefile uv-install-tools venv
+.PHONY: build check docs format format-makefile generate-compile-commands help lint lint-makefile sdist sync uv-install-tools venv wheel
 
 help:
 	@echo "miter package development"
@@ -12,16 +12,16 @@ venv: ## Create virtual environment
 	uv venv --project .
 	@echo "To activate the virtual environment, run: source .venv/bin/activate"
 
-sync:  ## Update project environment
+sync: ## Update project environment
 	uv sync
 
 sdist: ## Build source distribution.
 	uv build --sdist
 
-wheel:  ## Build Python wheel
+wheel: ## Build Python wheel
 	uv build --wheel
 
-build: sdist wheel  ## Build all.
+build: sdist wheel ## Build all.
 
 generate-compile-commands: ## Export compile_commands.json
 	# Use no-build-isolation, so that the include directories in `compile_commands.json`
@@ -39,9 +39,9 @@ lint-makefile:
 	uv tool run mbake format --check Makefile
 	uv tool run mbake validate Makefile
 
-format: format-makefile  ## Format all sources
+format: format-makefile ## Format all sources
 
-lint: lint-makefile  ## Lint all sources
+lint: lint-makefile ## Lint all sources
 
 check: lint
 
