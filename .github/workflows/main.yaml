@@ -41,6 +41,9 @@ jobs:
         with:
           python-version: 3.12
 
+      - name: Test import
+        run: python -c "import miter"
+
       - name: Lint
         run: make lint
 
